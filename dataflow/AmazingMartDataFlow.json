@@ -1,5 +1,5 @@
 {
-	"name": "AmazingMart",
+	"name": "AmazingMartDataFlow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
