@@ -1,0 +1,357 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "instancedetails"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AmazingMartPipeLine')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AmazingMartDataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "AmazingMartDataFlow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ListOfOrdersSRC": {},
+									"OrdersBreakdownSRC": {},
+									"SalesTargetSRC": {},
+									"OrdersBreakdown": {},
+									"Orders": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/AmazingMartDataFlow')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ListOfOrdersSrc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "ListOfOrders",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "P1-AmazingMartEU2-Latest2.xls",
+						"container": "input"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "Order ID",
+						"type": "String"
+					},
+					{
+						"name": "Order Date",
+						"type": "String"
+					},
+					{
+						"name": "Customer Name",
+						"type": "String"
+					},
+					{
+						"name": "City",
+						"type": "String"
+					},
+					{
+						"name": "Country",
+						"type": "String"
+					},
+					{
+						"name": "Region",
+						"type": "String"
+					},
+					{
+						"name": "Segment",
+						"type": "String"
+					},
+					{
+						"name": "Ship Date",
+						"type": "String"
+					},
+					{
+						"name": "Ship Mode",
+						"type": "String"
+					},
+					{
+						"name": "State",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OrdersBreakdownSrc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "OrderBreakdown",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "P1-AmazingMartEU2-Latest2.xls",
+						"container": "input"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "Order ID",
+						"type": "String"
+					},
+					{
+						"name": "Product Name",
+						"type": "String"
+					},
+					{
+						"name": "Discount",
+						"type": "String"
+					},
+					{
+						"name": "Sales",
+						"type": "String"
+					},
+					{
+						"name": "Profit",
+						"type": "String"
+					},
+					{
+						"name": "Quantity",
+						"type": "String"
+					},
+					{
+						"name": "Category",
+						"type": "String"
+					},
+					{
+						"name": "Sub-Category",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Output')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesTargetSrc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "SalesTargets",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "P1-AmazingMartEU2-Latest2.xls",
+						"container": "input"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "Order Date",
+						"type": "String"
+					},
+					{
+						"name": "Category",
+						"type": "String"
+					},
+					{
+						"name": "Target",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AmazingMartDataFlow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ListOfOrdersSrc",
+								"type": "DatasetReference"
+							},
+							"name": "ListOfOrdersSRC"
+						},
+						{
+							"dataset": {
+								"referenceName": "OrdersBreakdownSrc",
+								"type": "DatasetReference"
+							},
+							"name": "OrdersBreakdownSRC"
+						},
+						{
+							"dataset": {
+								"referenceName": "SalesTargetSrc",
+								"type": "DatasetReference"
+							},
+							"name": "SalesTargetSRC"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "OrdersBreakdown"
+						},
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "Orders"
+						}
+					],
+					"transformations": [
+						{
+							"name": "MinMaxAvg"
+						},
+						{
+							"name": "SumOrders"
+						},
+						{
+							"name": "ListOfOrdersSumOrders"
+						},
+						{
+							"name": "LOandSOMinMaxAvg"
+						},
+						{
+							"name": "Select1"
+						},
+						{
+							"name": "Statement"
+						},
+						{
+							"name": "TotalDiscountPrice"
+						},
+						{
+							"name": "TotalDiscountPrice2"
+						}
+					],
+					"script": "source(output(\n\t\t{Order ID} as string,\n\t\t{Order Date} as date,\n\t\t{Customer Name} as string,\n\t\tCity as string,\n\t\tCountry as string,\n\t\tRegion as string,\n\t\tSegment as string,\n\t\t{Ship Date} as date,\n\t\t{Ship Mode} as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> ListOfOrdersSRC\nsource(output(\n\t\t{Order ID} as string,\n\t\t{Product Name} as string,\n\t\tDiscount as double,\n\t\tSales as short,\n\t\tProfit as short,\n\t\tQuantity as short,\n\t\tCategory as string,\n\t\t{Sub-Category} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> OrdersBreakdownSRC\nsource(output(\n\t\t{Order Date} as date,\n\t\tCategory as string,\n\t\tTarget as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> SalesTargetSRC\nSalesTargetSRC aggregate(groupBy(Category,\n\t\t{Order Date}),\n\tMaxTarget = max(Target),\n\t\tMinTarget = min(Target),\n\t\tAvgTarget = avg(Target),\n\tpartitionBy('hash', 1)) ~> MinMaxAvg\nTotalDiscountPrice aggregate(groupBy({Order ID},\n\t\tCategory,\n\t\t{Sub-Category}),\n\t{Total Discount} = sum({Total Discount Price}),\n\t\t{Total Sales} = sum(Sales),\n\t\t{Total Profit} = sum(Profit),\n\tpartitionBy('hash', 1)) ~> SumOrders\nListOfOrdersSRC, SumOrders join(ListOfOrdersSRC@{Order ID} == SumOrders@{Order ID},\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> ListOfOrdersSumOrders\nListOfOrdersSumOrders, MinMaxAvg join(ListOfOrdersSRC@{Order Date} == MinMaxAvg@{Order Date}\n\t&& SumOrders@Category == MinMaxAvg@Category,\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> LOandSOMinMaxAvg\nLOandSOMinMaxAvg select(mapColumn(\n\t\t{Order ID} = ListOfOrdersSRC@{Order ID},\n\t\t{Order Date} = ListOfOrdersSRC@{Order Date},\n\t\t{Customer Name},\n\t\tCity,\n\t\tCountry,\n\t\tRegion,\n\t\tSegment,\n\t\t{Ship Date},\n\t\t{Ship Mode},\n\t\tState,\n\t\t{Order ID} = SumOrders@{Order ID},\n\t\tCategory = SumOrders@Category,\n\t\t{Total Discount},\n\t\t{Total Sales},\n\t\t{Total Profit},\n\t\tCategory = MinMaxAvg@Category,\n\t\t{Order Date} = MinMaxAvg@{Order Date},\n\t\tMaxTarget,\n\t\tMinTarget,\n\t\tAvgTarget\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 derive(Statement = iif({Total Profit} >=1, 'Profit', \r\n    iif({Total Profit} ==0,'Even',\r\n    'Loss')),\n\tpartitionBy('hash', 1)) ~> Statement\nOrdersBreakdownSRC derive({Total Discount Price} = Discount * Sales,\n\tpartitionBy('hash', 1)) ~> TotalDiscountPrice\nOrdersBreakdownSRC derive({Total Discount Price} = Discount * Sales) ~> TotalDiscountPrice2\nTotalDiscountPrice2 sink(allowSchemaDrift: true,\n\tvalidateSchema: true,\n\tpartitionFileNames:['OrdersBreakdown.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> OrdersBreakdown\nStatement sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['Orders.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> Orders"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ListOfOrdersSrc')]",
+				"[concat(variables('factoryId'), '/datasets/OrdersBreakdownSrc')]",
+				"[concat(variables('factoryId'), '/datasets/SalesTargetSrc')]",
+				"[concat(variables('factoryId'), '/datasets/Output')]"
+			]
+		}
+	]
+}
